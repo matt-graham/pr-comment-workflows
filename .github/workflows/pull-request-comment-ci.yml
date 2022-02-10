@@ -8,8 +8,7 @@ on:
 jobs:
   scale_run:
     runs-on: ubuntu-latest
-    needs: check_permissions
-    if: needs.check_permissions.outputs.has_permissions && github.event.issue.pull_request && github.event.comment.body == '/test-sim-run'
+    if: github.event.issue.pull_request && github.event.comment.body == '/test-sim-run'
     steps:
     - name: Check permissions of commenting user
       id: has_permissions
