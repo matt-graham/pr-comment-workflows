@@ -19,7 +19,7 @@ jobs:
         script: |
           const { owner, repo, number } = context.issue;
           const commenter = context.payload.comment.user.login;
-          const permission_level = github.repos.getCollaboratorPermissionLevel({
+          const permission_level = await github.repos.getCollaboratorPermissionLevel({
             owner: owner,
             repo: repo,
             username: commenter,
