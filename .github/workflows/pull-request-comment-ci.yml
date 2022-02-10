@@ -18,10 +18,11 @@ jobs:
       with:
         script: |
           const { owner, repo, number } = context.issue;
+          const commenter = github.event.comment.user.login;
           const permission_level = github.repos.getCollaboratorPermissionLevel({
             owner,
             repo,
-            github.event.comment.user.login,
+            commenter,
           });
           return (permission_level == 'admin') || (permission_level == 'write')
 
