@@ -33,12 +33,15 @@ jobs:
     runs-on: ubuntu-latest
     needs: check_permissions
     steps:
-    - run: echo ${{ needs.check_permission.outputs.has_permissions }}
+    - run: |
+      echo "${{ needs.check_permission.outputs.has_permissions == true}}"
+      echo "true"
+      echo "false"
 
   scale_run:
     runs-on: ubuntu-latest
     needs: check_permissions
-    if: needs.check_permission.outputs.has_permissions && github.event.issue.pull_request && github.event.comment.body == '/test-sim-run'
+    if: needs.check_permission.outputs.has_permissions == true && github.event.issue.pull_request && github.event.comment.body == '/test-sim-run'
     steps:
     - name: React to comment
       uses: actions/github-script@v4
