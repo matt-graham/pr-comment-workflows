@@ -26,7 +26,14 @@ jobs:
           });
           const permission_level = response.data.permission;
           console.log(permission_level);
+          console.log((permission_level == 'admin') || (permission_level == 'write'))
           return (permission_level == 'admin') || (permission_level == 'write')
+          
+  output_check_permissions:
+    runs-on: ubuntu-latest
+    needs: check_permissions
+    steps:
+    - run: echo ${{ needs.check_permission.outputs.has_permissions }}
 
   scale_run:
     runs-on: ubuntu-latest
