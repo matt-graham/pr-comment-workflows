@@ -28,18 +28,20 @@ jobs:
           console.log(permission_level);
           console.log((permission_level == 'admin') || (permission_level == 'write'))
           return (permission_level == 'admin') || (permission_level == 'write')
+    - name: Print result
+      run: echo "${{steps.permissions.outputs.result}}"
           
   output_check_permissions:
     runs-on: ubuntu-latest
     needs: check_permissions
     steps:
     - run: |
-        echo ${{ needs.check_permission.outputs.has_permissions == 1}}
+        echo "${{needs.check_permissions.outputs.has_permissions}}"
 
   scale_run:
     runs-on: ubuntu-latest
     needs: check_permissions
-    if: needs.check_permission.outputs.has_permissions == 1 && github.event.issue.pull_request && github.event.comment.body == '/test-sim-run'
+    if: needs.check_permissions.outputs.has_permissions && github.event.issue.pull_request && github.event.comment.body == '/test-sim-run'
     steps:
     - name: React to comment
       uses: actions/github-script@v4
