@@ -6,10 +6,40 @@ on:
       - created
       
 jobs:
+
+  check_permissions:
+    outputs:
+      has_permissions: ${{ steps.permissions.outputs.result }}
+    steps:
+    - name: Check permissions of posting user
+      id: permissions
+      uses: actions/github-script@v4
+      with:
+        script: |
+          const { owner, repo, number } = context.issue;
+          const permission_level = github.repos.getCollaboratorPermissionLevel({
+            owner,
+            repo,
+            github.event.comment.user.login,
+          });
+          return (permission_level == 'admin') || (permission_level == 'write')
+
   scale_run:
     runs-on: ubuntu-latest
-    if: ${{ github.event.issue.pull_request && github.event.comment.body == '/test-sim-run' }}
+    needs: check_permissions
+    if: needs.check_permission.outputs.has_permissions && github.event.issue.pull_request && github.event.comment.body == '/test-sim-run'
     steps:
+    - name: React to comment
+      uses: actions/github-script@v4
+      with:
+        script: |
+          const {owner, repo} = context.issue;
+          github.reactions.createForIssueComment({
+            owner,
+            repo,
+            comment_id: context.payload.comment.id,
+            content: "rocket",
+          });
     - name: Get PR SHA
       id: sha
       uses: actions/github-script@v4
@@ -23,21 +53,11 @@ jobs:
             pull_number: number,
           });
           return pr.data.head.sha
-    - uses: actions/checkout@v2
+    - name: Checkout pull request branch
+      uses: actions/checkout@v2
       with:
         lfs: true
         ref: ${{ steps.sha.outputs.result }}
-    - name: React to comment
-      uses: actions/github-script@v4
-      with:
-        script: |
-          const {owner, repo} = context.issue;
-          github.reactions.createForIssueComment({
-            owner,
-            repo,
-            comment_id: context.payload.comment.id,
-            content: "rocket",
-          });
     - name: System info
       run: |
         set -x
@@ -48,7 +68,7 @@ jobs:
       run: |
         python -m cProfile src/scripts/run_sim.py
     - name: Message success
-      if: ${{ success() }}
+      if: success()
       uses: actions/github-script@v4
       with:
         script: |
@@ -59,7 +79,7 @@ jobs:
             body: `[Run of model succeeded! ✅](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
           });
     - name: Message failure
-      if: ${{ failure() }}
+      if: failure()
       uses: actions/github-script@v4
       with:
         script: |
