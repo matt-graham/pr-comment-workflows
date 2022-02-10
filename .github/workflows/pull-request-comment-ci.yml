@@ -8,7 +8,7 @@ on:
 jobs:
 
   run_model:
-    uses: ./github/workflows/run-on-pr-comment.yml
+    uses: ./.github/workflows/run-on-pr-comment.yml
     with:
       keyword: scaled-sim
       run_test: |
