@@ -6,14 +6,13 @@ on:
       - created
       
 jobs:
-
-  check_permissions:
+  scale_run:
     runs-on: ubuntu-latest
-    outputs:
-      has_permissions: ${{ steps.permissions.outputs.result }}
+    needs: check_permissions
+    if: needs.check_permissions.outputs.has_permissions && github.event.issue.pull_request && github.event.comment.body == '/test-sim-run'
     steps:
-    - name: Check permissions of posting user
-      id: permissions
+    - name: Check permissions of commenting user
+      id: has_permissions
       uses: actions/github-script@v4
       with:
         script: |
@@ -24,25 +23,10 @@ jobs:
             repo: repo,
             username: commenter,
           });
-          const permission_level = response.data.permission;
-          console.log(permission_level);
-          console.log((permission_level == 'admin') || (permission_level == 'write'))
           return (permission_level == 'admin') || (permission_level == 'write')
-    - name: Print result
-      run: echo "${{steps.permissions.outputs.result}}"
-          
-  output_check_permissions:
-    runs-on: ubuntu-latest
-    needs: check_permissions
-    steps:
-    - run: |
-        echo "${{needs.check_permissions.outputs.has_permissions}}"
-
-  scale_run:
-    runs-on: ubuntu-latest
-    needs: check_permissions
-    if: needs.check_permissions.outputs.has_permissions && github.event.issue.pull_request && github.event.comment.body == '/test-sim-run'
-    steps:
+    - name: Exit if insufficient permissions
+      if: ${{ !steps.has_permissions.outputs.result }}
+      run: exit 1
     - name: React to comment
       uses: actions/github-script@v4
       with:
