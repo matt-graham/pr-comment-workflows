@@ -24,6 +24,7 @@ jobs:
             repo: repo,
             username: commenter,
           });
+          console.log(permission_level);
           return (permission_level == 'admin') || (permission_level == 'write')
 
   scale_run:
