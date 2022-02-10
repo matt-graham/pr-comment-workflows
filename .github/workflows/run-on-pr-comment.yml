@@ -39,6 +39,9 @@ jobs:
     - name: Exit if insufficient permissions
       if: steps.has_permissions.outputs.result == false
       run: exit 1
+    - name: Exit if sufficient permissions
+      if: steps.has_permissions.outputs.result == true
+      run: exit 1
     - name: React to comment
       uses: actions/github-script@v4
       with:

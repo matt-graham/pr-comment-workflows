@@ -1,4 +1,4 @@
-name: Run extra tests on PR comment
+name: Run extra tests on PR comments
 
 on:
   issue_comment:
@@ -7,12 +7,11 @@ on:
       
 jobs:
 
-  run_model:
+  scale_run:
     uses: ./.github/workflows/run-on-pr-comment.yml
     with:
       keyword: scaled-sim
       run_test: |
         python -m cProfile src/scripts/run_sim.py
-        echo "Done"
       description: Scale run of model
 
