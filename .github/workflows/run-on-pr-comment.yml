@@ -35,8 +35,10 @@ jobs:
           console.log(permission_level);
           return (permission_level == 'admin') || (permission_level == 'write')
     - name: Exit if insufficient permissions
-      if: ${{ steps.has_permissions.outputs.result == false }}
-      run: exit 1
+      if: steps.has_permissions.outputs.result == false
+      run: |
+        echo "${{steps.has_permissions.outputs.result}}"
+        exit 1
     - name: React to comment
       uses: actions/github-script@v4
       with:
