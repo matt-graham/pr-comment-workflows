@@ -31,6 +31,7 @@ jobs:
             username: commenter,
           });
           const permission_level = response.data.permission;
+          consol.log(context.payload.comment.user.login);
           console.log(permission_level);
           return (permission_level == 'admin') || (permission_level == 'write')
     - name: Exit if insufficient permissions
