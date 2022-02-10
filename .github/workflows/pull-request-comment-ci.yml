@@ -8,6 +8,7 @@ on:
 jobs:
 
   check_permissions:
+    runs-on: ubuntu-latest
     outputs:
       has_permissions: ${{ steps.permissions.outputs.result }}
     steps:
