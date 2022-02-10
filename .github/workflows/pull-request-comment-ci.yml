@@ -1,0 +1,71 @@
+name: Run extra tests on PR comment
+
+on:
+  issue_comment:
+    types:
+      - created
+      
+jobs:
+  scale_run:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.issue.pull_request && github.event.comment.body == '/test-sim-run' }}
+    steps:
+    - name: Get PR SHA
+      id: sha
+      uses: actions/github-script@v4
+      with:
+        result-encoding: string
+        script: |
+          const { owner, repo, number } = context.issue;
+          const pr = await github.pulls.get({
+            owner,
+            repo,
+            pull_number: number,
+          });
+          return pr.data.head.sha
+    - uses: actions/checkout@v2
+      with:
+        lfs: true
+        ref: ${{ steps.sha.outputs.result }}
+    - name: React to comment
+      uses: actions/github-script@v4
+      with:
+        script: |
+          const {owner, repo} = context.issue;
+          github.reactions.createForIssueComment({
+            owner,
+            repo,
+            comment_id: context.payload.comment.id,
+            content: "rocket",
+          });
+    - name: System info
+      run: |
+        set -x
+        python --version
+        uname -a
+        lsb_release -a
+    - name: Run scripts/run_sim.py
+      run: |
+        python -m cProfile src/scripts/run_sim.py
+    - name: Message success
+      if: ${{ success() }}
+      uses: actions/github-script@v4
+      with:
+        script: |
+          github.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,  
+            body: `[Run of model succeeded! ✅](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
+          });
+    - name: Message failure
+      if: ${{ failure() }}
+      uses: actions/github-script@v4
+      with:
+        script: |
+          github.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `[Run of model failed! ❌](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
+          });
