@@ -34,7 +34,7 @@ jobs:
     needs: check_permissions
     steps:
     - run: |
-      echo ${{ needs.check_permission.outputs.has_permissions == 1}}
+        echo ${{ needs.check_permission.outputs.has_permissions == 1}}
 
   scale_run:
     runs-on: ubuntu-latest
