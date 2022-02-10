@@ -1,4 +1,4 @@
-name: Run extra tests on PR comment
+name: Run test triggered by pull-request comment
 
 on:
   workflow_call:
@@ -14,7 +14,7 @@ on:
         type: string
 
 jobs:
-  scale_run:
+  run_test_on_keyword_and_reply_with_status:
     runs-on: ubuntu-latest
     if: github.event.issue.pull_request && github.event.comment.body == format('/run {0}', inputs.keyword)
     steps:
@@ -31,9 +31,10 @@ jobs:
             username: commenter,
           });
           const permission_level = response.data.permission;
+          console.log(permission_level);
           return (permission_level == 'admin') || (permission_level == 'write')
     - name: Exit if insufficient permissions
-      if: ${{ !steps.has_permissions.outputs.result }}
+      if: ${{ steps.has_permissions.outputs.result == false }}
       run: exit 1
     - name: React to comment
       uses: actions/github-script@v4
