@@ -1,24 +1,22 @@
 name: Run extra tests on PR comment
 
 on:
-  issue_comment:
-    types:
-      - created
-      
+  workflow_call:
+    inputs:
+      keyword:
+        required: true
+        type: string
+      description:
+        required: true
+        type: string
+      run_test:
+        required: true
+        type: string
+
 jobs:
-
-  run_model:
-    uses: ./github/workflows/run-on-pr-comment.yml
-    with:
-      keyword: scaled-sim
-      run_test: |
-        python -m cProfile src/scripts/run_sim.py
-        echo "Done"
-      description: Scale run of model
-
   scale_run:
     runs-on: ubuntu-latest
-    if: github.event.issue.pull_request && github.event.comment.body == '/test-sim-run'
+    if: github.event.issue.pull_request && github.event.comment.body == format('/run {0}', inputs.keyword)
     steps:
     - name: Check permissions of commenting user
       id: has_permissions
@@ -48,7 +46,7 @@ jobs:
             comment_id: context.payload.comment.id,
             content: "rocket",
           });
-    - name: Get PR SHA
+    - name: Get pull-request SHA
       id: sha
       uses: actions/github-script@v4
       with:
@@ -61,7 +59,7 @@ jobs:
             pull_number: number,
           });
           return pr.data.head.sha
-    - name: Checkout pull request branch
+    - name: Checkout pull-request SHA
       uses: actions/checkout@v2
       with:
         lfs: true
@@ -72,9 +70,8 @@ jobs:
         python --version
         uname -a
         lsb_release -a
-    - name: Run scripts/run_sim.py
-      run: |
-        python -m cProfile src/scripts/run_sim.py
+    - name: Run test command(s)
+      run: ${{ inputs.run_test }}
     - name: Message success
       if: success()
       uses: actions/github-script@v4
@@ -84,7 +81,7 @@ jobs:
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,  
-            body: `[Run of model succeeded! ✅](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
+            body: `[${{ inputs.description }} succeeded ✅](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
           });
     - name: Message failure
       if: failure()
@@ -95,5 +92,5 @@ jobs:
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
-            body: `[Run of model failed! ❌](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
+            body: `[${{ inputs.description }} failed ❌](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
           });
