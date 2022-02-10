@@ -22,6 +22,7 @@ jobs:
             repo: repo,
             username: commenter,
           });
+          const permission_level = response.data.permission;
           return (permission_level == 'admin') || (permission_level == 'write')
     - name: Exit if insufficient permissions
       if: ${{ !steps.has_permissions.outputs.result }}
