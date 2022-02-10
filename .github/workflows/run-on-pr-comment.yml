@@ -31,28 +31,12 @@ jobs:
             username: commenter,
           });
           const permission_level = response.data.permission;
-          console.log(context.payload.comment.user.login);
-          console.log(permission_level);
           return (permission_level == 'admin') || (permission_level == 'write')
-    - name: Print whether sufficient permissions
-      run: echo "${{ steps.has_permissions.outputs.result }}"
-    - name: Exit if insufficient permissions (1)
-      if: ${{ steps.has_permissions.outputs.result == false }}
-      run: exit 1
-    - name: Exit if sufficient permissions (1)
-      if: ${{ steps.has_permissions.outputs.result == true }}
-      run: exit 1
-    - name: Exit if insufficient permissions (2)
+    - name: Exit if insufficient permissions
       if: ${{ !steps.has_permissions.outputs.result }}
       run: exit 1
-    - name: Exit if sufficient permissions (2)
+    - name: Exit if sufficient permissions
       if: ${{ steps.has_permissions.outputs.result }}
-      run: exit 1
-    - name: Exit if insufficient permissions (3)
-      if: ${{ steps.has_permissions.outputs.result == 'false' }}
-      run: exit 1
-    - name: Exit if sufficient permissions (3)
-      if: ${{ steps.has_permissions.outputs.result == 'true' }}
       run: exit 1
     - name: React to comment
       uses: actions/github-script@v4
@@ -103,7 +87,7 @@ jobs:
             body: `[${{ inputs.description }} succeeded ✅](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
           });
     - name: Message failure
-      if: failure()
+      if: failure() && steps.has_permissions.outputs.result
       uses: actions/github-script@v4
       with:
         script: |
