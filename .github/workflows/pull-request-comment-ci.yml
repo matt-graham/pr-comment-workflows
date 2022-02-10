@@ -14,4 +14,12 @@ jobs:
       run_test: |
         python -m cProfile src/scripts/run_sim.py
       description: Scale run of model
+      
+  scale_run:
+    uses: ./.github/workflows/run-on-pr-comment.yml
+    with:
+      keyword: multi-seed-tests
+      run_test: |
+        python -m cProfile src/scripts/run_sim.py
+      description: Run tests with multiple seeds
 
