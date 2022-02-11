@@ -35,8 +35,8 @@ jobs:
           return (permission_level == 'admin') || (permission_level == 'write')
     - name: Echo has_permissions and !has_permissions
       run: |
-        echo "${{ steps.has_permissions.outputs.result }}"
-        echo "${{ !steps.has_permissions.outputs.result }}"
+        echo "${{ steps.has_permissions.outputs.result == 'true' }}"
+        echo "${{ steps.has_permissions.outputs.result == 'false' }}"
     - name: Exit if insufficient permissions
       if: ${{ !steps.has_permissions.outputs.result }}
       run: |
