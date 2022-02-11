@@ -32,18 +32,6 @@ jobs:
           });
           const permission_level = response.data.permission;
           return (permission_level == 'admin') || (permission_level == 'write')
-    - name: Delete workflow logs and exit if insufficient permissions
-      if: ${{ steps.has_permissions.outputs.result == 'false' }}
-      uses: actions/github-script@v4
-      with:
-        script: |
-          const { owner, repo, number } = context.issue;
-          github.actions.deleteWorkflowRunLogs({
-            owner,
-            repo,
-            run_id: context.runId,
-          });
-          throw new Error('Insufficient permissions, exitting.');
     - name: Exit if insufficient permissions
       if: ${{ steps.has_permissions.outputs.result == 'false' }}
       run: |
