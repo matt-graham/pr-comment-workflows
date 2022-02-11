@@ -32,9 +32,14 @@ jobs:
           });
           const permission_level = response.data.permission;
           return (permission_level == 'admin') || (permission_level == 'write')
+    - name: Echo has_permissions and !has_permissions
+      run: |
+        echo "${{ steps.has_permissions.outputs.result }}"
+        echo "${{ !steps.has_permissions.outputs.result }}"
     - name: Exit if insufficient permissions
       if: ${{ !steps.has_permissions.outputs.result }}
-      run: exit 1
+      run: |
+        exit 1
     - name: React to comment
       uses: actions/github-script@v4
       with:
