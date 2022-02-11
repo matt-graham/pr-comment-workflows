@@ -7,21 +7,11 @@ on:
       
 jobs:
 
-  scale_run:
+  scaled_sim:
     uses: ./.github/workflows/run-on-pr-comment.yml
-    if: github.event.issue.pull_request && github.event.comment.body == '/run scaled-sim'
     with:
       keyword: scaled-sim
       run_test: |
         python -m cProfile src/scripts/run_sim.py
       description: Scale run of model
-      
-  multi_seed_tests:
-    uses: ./.github/workflows/run-on-pr-comment.yml
-    if: github.event.issue.pull_request && github.event.comment.body == '/run multi-seed-tests'
-    with:
-      keyword: multi-seed-tests
-      run_test: |
-        python -m cProfile src/scripts/run_sim.py
-      description: Run tests with multiple seeds
 
