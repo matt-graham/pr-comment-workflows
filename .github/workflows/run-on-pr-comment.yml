@@ -31,14 +31,9 @@ jobs:
             username: commenter,
           });
           const permission_level = response.data.permission;
-          console.log(permission_level);
           return (permission_level == 'admin') || (permission_level == 'write')
-    - name: Echo has_permissions and !has_permissions
-      run: |
-        echo "${{ steps.has_permissions.outputs.result == 'true' }}"
-        echo "${{ steps.has_permissions.outputs.result == 'false' }}"
     - name: Exit if insufficient permissions
-      if: ${{ !steps.has_permissions.outputs.result }}
+      if: ${{ steps.has_permissions.outputs.result == 'false' }}
       run: |
         exit 1
     - name: React to comment
