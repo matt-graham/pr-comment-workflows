@@ -80,10 +80,10 @@ jobs:
       uses: actions/github-script@v4
       with:
         script: |
-          const workflow_run = await github.actions.getWorfklowWrun({
+          const workflow_run = await github.actions.getWorfklowRun({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            run_id: contex.runId
+            run_id: context.runId
           });
           const result = "${{ job.status == 'failure' && 'succeeded ✅' || 'failed ❌' }}"
           github.issues.createComment({
