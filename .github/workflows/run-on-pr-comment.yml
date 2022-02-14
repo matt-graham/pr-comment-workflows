@@ -73,12 +73,10 @@ jobs:
       with:
         lfs: true
         ref: ${{ steps.sha.outputs.result }}
-    - name: System info
-      run: source .github/workflows/system-info.sh
-      shell: bash
     - name: Run test command(s)
       run: ${{ inputs.commands }}
     - name: Create comment with test result and link to workflow run information
+      if: always()
       uses: actions/github-script@v4
       with:
         script: |

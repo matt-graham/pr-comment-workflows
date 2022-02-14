@@ -12,5 +12,7 @@ jobs:
     with:
       runs-on: ubuntu-latest
       keyword: scaled-sim
-      commands: python -m cProfile src/scripts/run_sim.py
+      commands: |
+        source .github/workflows/system-info.sh
+        python -m cProfile src/scripts/run_sim.py
       description: Scale run of model
