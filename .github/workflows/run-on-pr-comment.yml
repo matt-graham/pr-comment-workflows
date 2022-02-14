@@ -31,12 +31,10 @@ jobs:
       uses: actions/github-script@v4
       with:
         script: |
-          const { owner, repo, number } = context.issue;
-          const commenter = context.payload.comment.user.login;
           const response = await github.repos.getCollaboratorPermissionLevel({
-            owner: owner,
-            repo: repo,
-            username: commenter,
+            owner: context.repo.owner,
+            repo: context.repo.repo,  
+            username: context.payload.comment.user.login,
           });
           const permission_level = response.data.permission;
           return (permission_level == 'admin') || (permission_level == 'write')
@@ -48,10 +46,9 @@ jobs:
       uses: actions/github-script@v4
       with:
         script: |
-          const {owner, repo} = context.issue;
           github.reactions.createForIssueComment({
-            owner: owner,
-            repo: repo,
+            owner: context.repo.owner,
+            repo: context.repo.repo,  
             comment_id: context.payload.comment.id,
             content: "rocket",
           });
@@ -61,11 +58,10 @@ jobs:
       with:
         result-encoding: string
         script: |
-          const { owner, repo, number } = context.issue;
           const pr = await github.pulls.get({
-            owner,
-            repo,
-            pull_number: number,
+            owner: context.issue.owner,
+            repo: context.issue.repo,
+            pull_number: context.issue.number,
           });
           return pr.data.head.sha
     - name: Checkout pull-request SHA
@@ -76,14 +72,14 @@ jobs:
     - name: Run test command(s)
       run: ${{ inputs.commands }}
     - name: Create comment with test result and link to workflow run information
-      if: always()
+      if: always() && steps.has_permissions.outputs.result == 'true'
       uses: actions/github-script@v4
       with:
         script: |
           const workflow_run = await github.actions.getWorkflowRun({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            run_id: context.runId
+            run_id: context.runId,
           });
           const result = "${{ job.status == 'success' && 'succeeded ✅' || 'failed ❌' }}"
           github.issues.createComment({
