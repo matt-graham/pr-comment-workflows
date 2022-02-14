@@ -1,21 +1,29 @@
-name: Run test triggered by pull-request comment
+name: Resuable workflow for triggering tests with a pull-request comment
 
 on:
   workflow_call:
     inputs:
+      runs-on:
+        description: The type of machine to run job on
+        required: false
+        type: string
+        default: ubuntu-latest
       keyword:
+        description: The keyword to appear after /run in PR comment to trigger workflow
         required: true
         type: string
       description:
+        description: A description of test to use in comment generated to indicate result
         required: true
         type: string
-      run_test:
+      commands:
+        description: The shell command(s) to run to execute test
         required: true
         type: string
 
 jobs:
-  run_test_on_keyword_and_reply_with_status:
-    runs-on: ubuntu-latest
+  run_test_on_keyword_and_reply_with_result:
+    runs-on: ${{ inputs.runs-on }}
     if: github.event.issue.pull_request && github.event.comment.body == format('/run {0}', inputs.keyword)
     steps:
     - name: Check permissions of commenting user
@@ -66,32 +74,23 @@ jobs:
         lfs: true
         ref: ${{ steps.sha.outputs.result }}
     - name: System info
-      run: |
-        set -x
-        python --version
-        uname -a
-        lsb_release -a
+      run: source .github/workflows/system-info.sh
+      shell: bash
     - name: Run test command(s)
-      run: ${{ inputs.run_test }}
-    - name: Message success
-      if: success()
+      run: ${{ inputs.commands }}
+    - name: Create comment with test result and link to workflow run information
       uses: actions/github-script@v4
       with:
         script: |
+          const workflow_run = await github.actions.getWorfklowWrun({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            run_id: contex.runId
+          });
+          const result = "${{ success() && 'succeeded ✅' || 'failed ❌' }}"
           github.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,  
-            body: `[${{ inputs.description }} succeeded ✅](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
-          });
-    - name: Message failure
-      if: failure() && steps.has_permissions.outputs.result == 'true'
-      uses: actions/github-script@v4
-      with:
-        script: |
-          github.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: `[${{ inputs.description }} failed ❌](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
+            body: `[${{ inputs.description }} ${result}](${workflow_run.html_url})`,
           });
