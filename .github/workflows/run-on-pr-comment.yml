@@ -85,7 +85,7 @@ jobs:
             repo: context.repo.repo,
             run_id: context.runId
           });
-          const result = "${{ job.status == 'failure' && 'succeeded ✅' || 'failed ❌' }}"
+          const result = "${{ job.status == 'success' && 'succeeded ✅' || 'failed ❌' }}"
           github.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
