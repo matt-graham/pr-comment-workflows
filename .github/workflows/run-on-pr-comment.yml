@@ -92,8 +92,8 @@ jobs:
           const completed_date = new Date(run_test_commands_step.completed_at);
           const time_minutes = ((completed_date - started_date) / 60000).toPrecision(3);
           const details = [
-            `🆔 [${job.id}](${job.html_url})`
-            `⏲️ ${time_minutes} minutes`
+            `🆔 [${job.id}](${job.html_url})`,
+            `⏲️ ${time_minutes} minutes`,
             `#️⃣ ${{ steps.sha.outputs.result }}`
           ].join('\n');
           github.issues.createComment({
