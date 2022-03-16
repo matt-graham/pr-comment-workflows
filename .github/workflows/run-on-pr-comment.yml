@@ -58,12 +58,12 @@ jobs:
       with:
         result-encoding: string
         script: |
-          const pr = await github.pulls.get({
+          const { data: pr } = await github.pulls.get({
             owner: context.issue.owner,
             repo: context.issue.repo,
             pull_number: context.issue.number,
           });
-          return pr.data.head.sha
+          return pr.head.sha
     - name: Checkout pull-request SHA
       uses: actions/checkout@v2
       with:
@@ -76,23 +76,18 @@ jobs:
       uses: actions/github-script@v4
       with:
         script: |
-          const workflow_run = await github.actions.getWorkflowRun({
+          const { data: jobs } = await github.actions.listJobsForWorkflowRun({
             owner: context.repo.owner,
             repo: context.repo.repo,
             run_id: context.runId,
           });
-          const job = await github.actions.getJobForWorkflowRun({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            job_id: context.job,
-          });
-          const url = job.data.html_url;
-          const run_test_commands_step = job.data.steps[6];
+          const url = jobs[0].html_url;
+          const run_test_commands_step = jobs[0].steps[6];
           const result = run_test_commands_step.status == 'success' ? 'succeeded ✅' : 'failed ❌';
           const started_date = new Date(run_test_commands_step.data.started_at);
           const completed_date = new Date(run_test_commands_step.data.completed_at);
           const time_difference_min = ((completed_date - started_date) / 60000).toPrecision(3);
-          const details = `🆔 ${context.job}\n⏲️ ${time_difference_min} minutes\n#️⃣ ${context.sha}`
+          const details = `🆔 ${jobs[0].id}\n⏲️ ${time_difference_min} minutes\n#️⃣ ${context.sha}`
           github.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
