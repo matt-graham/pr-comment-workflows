@@ -82,9 +82,13 @@ jobs:
             run_id: context.runId,
           });
           const result = "${{ job.status == 'success' && 'succeeded ✅' || 'failed ❌' }}"
+          const url = workflow_run.data.html_url
+          const created_date = new Date(workflow_run.data.created_at);
+          const updated_date = new Date(workflow_run.data.updated_at);
+          let time_difference_min = ((updated_date - created_date) / 60000).toFixed(2);
           github.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,  
-            body: `[${{ inputs.description }} ${result}](${workflow_run.html_url})` + '\n' + JSON.stringify(workflow_run),
+            body: `[${{ inputs.description }} ${result} (${time_difference_min} min)](${url})`,
           });
