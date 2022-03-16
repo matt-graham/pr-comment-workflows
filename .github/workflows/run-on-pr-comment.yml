@@ -91,10 +91,14 @@ jobs:
           const started_date = new Date(run_test_commands_step.started_at);
           const completed_date = new Date(run_test_commands_step.completed_at);
           const time_minutes = ((completed_date - started_date) / 60000).toPrecision(3);
-          const details = `🆔 ${job.id}\n⏲️ ${time_minutes} minutes\n#️⃣ ${context.sha}`
+          const details = [
+            `🆔 [${job.id}](${job.html_url})`
+            `⏲️ ${time_minutes} minutes`
+            `#️⃣ ${{ steps.sha.outputs.result }}`
+          ].join('\n');
           github.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,  
-            body: `[${{ inputs.description }} ${result}](${job.html_url})\n${details}`,
+            body: `## ${{inputs.description }} ${result}\n${details}`,
           });
