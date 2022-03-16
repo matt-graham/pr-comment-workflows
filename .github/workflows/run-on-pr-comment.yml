@@ -81,14 +81,21 @@ jobs:
             repo: context.repo.repo,
             run_id: context.runId,
           });
-          const result = "${{ job.status == 'success' && 'succeeded ✅' || 'failed ❌' }}"
-          const url = workflow_run.data.html_url
-          const created_date = new Date(workflow_run.data.created_at);
-          const updated_date = new Date(workflow_run.data.updated_at);
-          let time_difference_min = ((updated_date - created_date) / 60000).toFixed(2);
+          const job = await github.actions.getJobForWorkflowRun({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            job_id: context.job,
+          });
+          const url = job.data.html_url;
+          const run_test_commands_step = job.data.steps[6];
+          const result = run_test_commands_step.status == 'success' ? 'succeeded ✅' : 'failed ❌';
+          const started_date = new Date(run_test_commands_step.data.started_at);
+          const completed_date = new Date(run_test_commands_step.data.completed_at);
+          const time_difference_min = ((completed_date - started_date) / 60000).toPrecision(3);
+          const details = `🆔 ${context.job}\n⏲️ ${time_difference_min} minutes\n#️⃣ ${context.sha}`
           github.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,  
-            body: `[${{ inputs.description }} ${result} (${time_difference_min} min)](${url})`,
+            body: `[${{ inputs.description }} ${result}](${url})\n${details}`,
           });
