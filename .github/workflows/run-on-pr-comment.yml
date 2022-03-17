@@ -81,11 +81,13 @@ jobs:
             repo: context.repo.repo,
             run_id: context.runId,
           });
-          const job = workflow_jobs.jobs[0];
-          const run_test_commands_step = job.steps[6];
+          const job = workflow_jobs.jobs[0];  // There should only be one job
+          const run_test_commands_step = job.steps.filter(
+            step => step.name == "Run test command(s)"
+          )[0];  // There should only be one step with this name
           const result = (
             run_test_commands_step.conclusion == 'success' 
-            ? 'succeeded ✅' 
+            ? 'succeeded ✅'
             : 'failed ❌'
           );
           const started_date = new Date(run_test_commands_step.started_at);
