@@ -76,8 +76,8 @@ jobs:
       uses: actions/github-script@v4
       with:
         script: |
-          const got_completed_step_info = false;
-          const attempts = 0;
+          var got_completed_step_info = false;
+          var attempts = 0;
           // There can be a delay between steps completing and this being reflected
           // in information queried from REST API, therefore we poll for the list of
           // jobs associated with workflow run at interval of 1 second until the
