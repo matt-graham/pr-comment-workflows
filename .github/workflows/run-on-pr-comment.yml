@@ -100,8 +100,6 @@ jobs:
           const result = step.conclusion == 'success' ? 'succeeded ✅' : 'failed ❌';
           const started_date = new Date(step.started_at);
           const completed_date = new Date(step.completed_at);
-          console.log(started_date);
-          console.log(completed_date);
           const time_minutes = ((completed_date - started_date) / 60000).toPrecision(3);
           const details = [
             `🆔 [${job.id}](${job.html_url})`,

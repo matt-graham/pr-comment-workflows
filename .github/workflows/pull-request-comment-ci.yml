@@ -31,5 +31,14 @@ jobs:
         uname -a
         lsb_release -a
         python -m cProfile src/scripts/run_sim.py
+        python -m cProfile src/scripts/run_sim.py
+        python -m cProfile src/scripts/run_sim.py
+        python -m cProfile src/scripts/run_sim.py
+        python -m cProfile src/scripts/run_sim.py
+        python -m cProfile src/scripts/run_sim.py
+        python -m cProfile src/scripts/run_sim.py
+        python -m cProfile src/scripts/run_sim.py
+        python -m cProfile src/scripts/run_sim.py
+        python -m cProfile src/scripts/run_sim.py
       description: Run of tests over multiple seeds
 
