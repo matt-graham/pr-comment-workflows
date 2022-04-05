@@ -76,15 +76,17 @@ jobs:
       uses: actions/github-script@v4
       with:
         script: |
-          let got_completed_step_info = false;
-          let attempts = 0;
-          let job, step;
           // There can be a delay between steps completing and this being reflected
           // in information queried from REST API, therefore we poll for the list of
           // jobs associated with workflow run at interval of 1 second until the
-          // status of the previous "Run test command(s)" step indicates completed
-          while (!got_completed_step_info & attempts < 5) {
-            await new Promise(r => setTimeout(r, 1000));
+          // status of the previous "Run test command(s)" step indicates completed or
+          // a maximum number of attempts have been reached
+          const maximum_attempts = 5;
+          let got_completed_step_info = false;
+          let attempts = 0;
+          let job, step;
+          while (!got_completed_step_info & attempts < maximum_attempts) {
+            await new Promise(r => setTimeout(r, 1000));  // Wait for 1 second
             const { data: run_jobs } = await github.actions.listJobsForWorkflowRun({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -110,10 +112,8 @@ jobs:
             attempts += 1;
           }
           if (!got_completed_step_info) {
-            throw "Could not get completed job step information in maximum attempts";
+            throw `Could not get completed step data in ${maximum_attempts} attempts`;
           }
-          console.log(job);
-          console.log(step);   
           const result = step.conclusion == 'success' ? 'succeeded ✅' : 'failed ❌';
           const started_date = new Date(step.started_at);
           const completed_date = new Date(step.completed_at);
