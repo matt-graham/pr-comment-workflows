@@ -81,19 +81,25 @@ jobs:
             repo: context.repo.repo,
             run_id: context.runId,
           });
-          console.log(workflow_jobs.jobs);
-          console.log(context);
-          const job = workflow_jobs.jobs[0];  // There should only be one job
-          const run_test_commands_step = job.steps.filter(
+          const in_progress_jobs = workflow_jobs.jobs.filter(
+            job => job.status == "in_progress"
+          );  
+          // There should only be only one job in progress
+          if (in_progress_jobs.length > 1) {
+            throw "Multiple jobs triggered by same keyword";
+          }
+          const job = in_progress_jobs[0];
+          const run_test_commands_steps = job.steps.filter(
             step => step.name == "Run test command(s)"
-          )[0];  // There should only be one step with this name
-          const result = (
-            run_test_commands_step.conclusion == 'success' 
-            ? 'succeeded ✅'
-            : 'failed ❌'
           );
-          const started_date = new Date(run_test_commands_step.started_at);
-          const completed_date = new Date(run_test_commands_step.completed_at);
+          // There should only be one step with this name
+          if (run_test_commands_steps.length > 1) {
+            throw "Multiple steps with name 'Run test command(s)'";
+          }
+          const step = run_test_commands_steps[0];         
+          const result = step.conclusion == 'success' ? 'succeeded ✅' : 'failed ❌';
+          const started_date = new Date(step.started_at);
+          const completed_date = new Date(step.completed_at);
           console.log(started_date);
           console.log(completed_date);
           const time_minutes = ((completed_date - started_date) / 60000).toPrecision(3);
