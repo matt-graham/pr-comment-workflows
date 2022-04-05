@@ -82,6 +82,7 @@ jobs:
             run_id: context.runId,
           });
           console.log(workflow_jobs.jobs);
+          console.log(context);
           const job = workflow_jobs.jobs[0];  // There should only be one job
           const run_test_commands_step = job.steps.filter(
             step => step.name == "Run test command(s)"
