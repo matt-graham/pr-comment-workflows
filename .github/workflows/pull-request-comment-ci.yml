@@ -19,3 +19,17 @@ jobs:
         lsb_release -a
         python -m cProfile src/scripts/run_sim.py
       description: Scale run of model
+      
+  multiple_seed_tests:
+    uses: ./.github/workflows/run-on-pr-comment.yml
+    with:
+      runs-on: ubuntu-latest
+      keyword: multiple-seed-tests
+      commands: |
+        set -x
+        python --version
+        uname -a
+        lsb_release -a
+        python -m cProfile src/scripts/run_sim.py
+      description: Run of tests over multiple seeds
+
