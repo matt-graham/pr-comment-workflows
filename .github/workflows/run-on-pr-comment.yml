@@ -96,7 +96,9 @@ jobs:
           if (run_test_commands_steps.length > 1) {
             throw "Multiple steps with name 'Run test command(s)'";
           }
-          const step = run_test_commands_steps[0];         
+          const step = run_test_commands_steps[0];
+          console.log(job);
+          console.log(step);   
           const result = step.conclusion == 'success' ? 'succeeded ✅' : 'failed ❌';
           const started_date = new Date(step.started_at);
           const completed_date = new Date(step.completed_at);
