@@ -76,27 +76,41 @@ jobs:
       uses: actions/github-script@v4
       with:
         script: |
-          const { data: workflow_jobs } = await github.actions.listJobsForWorkflowRun({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            run_id: context.runId,
-          });
-          const in_progress_jobs = workflow_jobs.jobs.filter(
-            job => job.status == "in_progress"
-          );  
-          // There should only be only one job in progress
-          if (in_progress_jobs.length > 1) {
-            throw "Multiple jobs triggered by same keyword";
+          const got_completed_step_info = false;
+          const attempts = 0;
+          // There can be a delay between steps completing and this being reflected
+          // in information queried from REST API, therefore we poll for the list of
+          // jobs associated with workflow run at interval of 1 second until the
+          // status of the previous "Run test command(s)" step indicates completed
+          while (!got_completed_step_info & attempts < 5) {
+            await new Promise(r => setTimeout(r, 1000));
+            const { data: workflow_jobs } = await github.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId,
+            });
+            const in_progress_jobs = workflow_jobs.jobs.filter(
+              job => job.status == "in_progress"
+            );  
+            // There should only be only one job in progress
+            if (in_progress_jobs.length > 1) {
+              throw "Multiple jobs triggered by same keyword";
+            }
+            const job = in_progress_jobs[0];
+            const run_test_commands_steps = job.steps.filter(
+              step => step.name == "Run test command(s)"
+            );
+            // There should only be one step with this name
+            if (run_test_commands_steps.length > 1) {
+              throw "Multiple steps with name 'Run test command(s)'";
+            }
+            const step = run_test_commands_steps[0];
+            got_completed_step_info = (step.status == "completed");
+            attempts += 1;
           }
-          const job = in_progress_jobs[0];
-          const run_test_commands_steps = job.steps.filter(
-            step => step.name == "Run test command(s)"
-          );
-          // There should only be one step with this name
-          if (run_test_commands_steps.length > 1) {
-            throw "Multiple steps with name 'Run test command(s)'";
+          if (!got_completed_step_info) {
+            throw "Could not get completed job step information in maximum attempts";
           }
-          const step = run_test_commands_steps[0];
           console.log(job);
           console.log(step);   
           const result = step.conclusion == 'success' ? 'succeeded ✅' : 'failed ❌';
