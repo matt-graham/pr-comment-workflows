@@ -94,6 +94,8 @@ jobs:
           );
           const started_date = new Date(run_test_commands_step.started_at);
           const completed_date = new Date(run_test_commands_step.completed_at);
+          console.log(started_date);
+          console.log(completed_date);
           const time_minutes = ((completed_date - started_date) / 60000).toPrecision(3);
           const details = [
             `🆔 [${job.id}](${job.html_url})`,
