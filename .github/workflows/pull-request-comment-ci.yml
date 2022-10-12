@@ -19,7 +19,9 @@ jobs:
         lsb_release -a
         python -m cProfile src/scripts/run_sim.py
       description: Scale run of model
-    secrets: inherit
+    secrets:
+      application-id: ${{ secrets.COMMENT_BOT_APP_ID }}
+      application-private-key: ${{ secrets.COMMENT_BOT_APP_PRIVATE_KEY }}
       
   multiple_seed_tests:
     uses: ./.github/workflows/run-on-pr-comment.yml
@@ -42,5 +44,7 @@ jobs:
         python -m cProfile src/scripts/run_sim.py
         python -m cProfile src/scripts/run_sim.py
       description: Run of tests over multiple seeds
-    secrets: inherit
+    secrets:
+      application-id: ${{ secrets.COMMENT_BOT_APP_ID }}
+      application-private-key: ${{ secrets.COMMENT_BOT_APP_PRIVATE_KEY }}
 
