@@ -25,6 +25,11 @@ on:
         required: false
         type: number
         default: 360
+      application-organization:
+          Organization GitHub App to use to issue API token used to create comment with
+          with results of test is installed on if relevant.
+        required: false
+        type: string
     secrets:
       application-id:
         description: |
@@ -95,6 +100,7 @@ jobs:
       with:
         application_id: ${{ secrets.application-id }}
         application_private_key: ${{ secrets.application-private-key }}
+        organization: ${{ inputs.application-organization }}
     - name: Create comment with test result and link to workflow run information
       if: always() && steps.has_permissions.outputs.result == 'true'
       uses: actions/github-script@v4
