@@ -28,7 +28,7 @@ jobs:
     uses: ./.github/workflows/run-on-comment.yml
     with:
       runs-on: ubuntu-latest
-      keyword: scaled-sim
+      keyword: scaled-sim-github-token
       commands: |
         set -x
         python --version
