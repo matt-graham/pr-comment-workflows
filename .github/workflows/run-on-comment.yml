@@ -25,12 +25,24 @@ on:
         required: false
         type: number
         default: 360
+      use-application-token:
+        description: |
+          Whether to use a GitHub App to generate an authentication token rather for
+          GitHub REST API queries after the commands have completed rather than the
+          GITHUB_TOKEN authentication token generated when the workflow is started. As
+          the access associated with GITHUB_TOKEN expires after 24 hours this is
+          necessary when test commands may take longer than this to complete. If set to
+          true the application-id and application-private-key secrets should be
+          specified, and optionally the application-organization input if using an
+          organization level GitHub App.
+        required: false
+        type: bool
+        default: false
       application-organization:
         description: |
           Organization in which GitHub App, used to issue API token used to create 
-          comment with results of test, is installed on if relevant. Not required if 
-          application-id input is not set and so default GITHUB_TOKEN authentication is
-          being used.
+          comment with results of test, is installed on if relevant. Only required if 
+          use-application-token is set to true.
         required: false
         type: string
     secrets:
@@ -38,16 +50,16 @@ on:
         description: |
           Application ID for GitHub App to use to issue API token used to create comment
           with results of test. App needs to have Actions (read) and Pull Requests
-          (read and write) permissions at the repository level. Optional - if not
-          specified the automatic GITHUB_TOKEN authentication token will be used instead
-          though note this expires 24 hours after the workflow run is started meaning it
-          is not suitable for long running tests.
+          (read and write) permissions at the repository level. Only required if 
+          use-application-token is set to true.
+        required: false
         required: false
       application-private-key:
         description: |
           Private key for GitHub App to use to issue API token used to create comment
-          with results of test if relevant. Not required if application-id input is
-          not set and so default GITHUB_TOKEN authentication is being used.
+          with results of test if relevant. Only required if use-application-token is
+          set to true.
+        required: false
         required: false
 jobs:
   run_test_on_keyword_and_reply_with_result:
@@ -104,7 +116,7 @@ jobs:
     - name: Run test command(s)
       run: ${{ inputs.commands }}
     - name: Get application token
-      if: secrets.application-id != ''
+      if: inputs.use-application-token
       id: get_application_token
       uses: peter-murray/workflow-application-token-action@e8782d687a306fb13d733244d0f2a50e272d3752
       with:
@@ -118,7 +130,7 @@ jobs:
         # If no application-id input set use automatic GITHUB_TOKEN authentication
         github-token: |
           ${{
-            inputs.application-id == ''
+            !inputs.use-application-token
             && secrets.GITHUB_TOKEN
             || steps.get_application_token.outputs.token
           }}
