@@ -43,14 +43,12 @@ on:
           though note this expires 24 hours after the workflow run is started meaning it
           is not suitable for long running tests.
         required: false
-        type: string
       application-private-key:
         description: |
           Private key for GitHub App to use to issue API token used to create comment
           with results of test if relevant. Not required if application-id input is
           not set and so default GITHUB_TOKEN authentication is being used.
         required: false
-        type: string
 jobs:
   run_test_on_keyword_and_reply_with_result:
     runs-on: ${{ inputs.runs-on }}
