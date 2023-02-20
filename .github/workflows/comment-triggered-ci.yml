@@ -23,6 +23,19 @@ jobs:
       application-id: ${{ secrets.COMMENT_BOT_APP_ID }}
       application-private-key: ${{ secrets.COMMENT_BOT_APP_PRIVATE_KEY }}
       
+  scaled_sim_github_token:
+    uses: ./.github/workflows/run-on-comment.yml
+    with:
+      runs-on: ubuntu-latest
+      keyword: scaled-sim
+      commands: |
+        set -x
+        python --version
+        uname -a
+        lsb_release -a
+        python -m cProfile src/scripts/run_sim.py
+      description: Scale run of model
+      
   multiple_seed_tests:
     uses: ./.github/workflows/run-on-comment.yml
     with:

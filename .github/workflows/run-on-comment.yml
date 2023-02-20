@@ -27,8 +27,10 @@ on:
         default: 360
       application-organization:
         description: |
-          Organization GitHub App to use to issue API token used to create comment with
-          with results of test is installed on if relevant.
+          Organization in which GitHub App, used to issue API token used to create 
+          comment with results of test, is installed on if relevant. Not required if 
+          application-id input is not set and so default GITHUB_TOKEN authentication is
+          being used.
         required: false
         type: string
     secrets:
@@ -36,14 +38,19 @@ on:
         description: |
           Application ID for GitHub App to use to issue API token used to create comment
           with results of test. App needs to have Actions (read) and Pull Requests
-          (read and write) permissions at the repository level.
-        required: true
+          (read and write) permissions at the repository level. Optional - if not
+          specified the automatic GITHUB_TOKEN authentication token will be used instead
+          though note this expires 24 hours after the workflow run is started meaning it
+          is not suitable for long running tests.
+        required: false
+        type: string
       application-private-key:
         description: |
           Private key for GitHub App to use to issue API token used to create comment
-          with results of test. App needs to have Actions (read) and Pull Requests
-          (read and write) permissions at the repository level.
-        required: true
+          with results of test if relevant. Not required if application-id input is
+          not set and so default GITHUB_TOKEN authentication is being used.
+        required: false
+        type: string
 jobs:
   run_test_on_keyword_and_reply_with_result:
     runs-on: ${{ inputs.runs-on }}
@@ -98,8 +105,9 @@ jobs:
         ref: ${{ steps.sha.outputs.result }}
     - name: Run test command(s)
       run: ${{ inputs.commands }}
-    - name: Get comment-bot token
-      id: get_comment_bot_token
+    - name: Get application token
+      if: ${{ secrets.application-id != '' }}
+      id: get_application_token
       uses: peter-murray/workflow-application-token-action@e8782d687a306fb13d733244d0f2a50e272d3752
       with:
         application_id: ${{ secrets.application-id }}
@@ -109,7 +117,13 @@ jobs:
       if: always() && steps.has_permissions.outputs.result == 'true'
       uses: actions/github-script@v6
       with:
-        github-token: ${{ steps.get_comment_bot_token.outputs.token }}
+        # If no application-id input set use automatic GITHUB_TOKEN authentication
+        github-token: |
+          ${{
+            inputs.application-id == ''
+            && secrets.GITHUB_TOKEN
+            || steps.get_application_token.outputs.token
+          }}
         script: |
           // There can be a delay between steps completing and this being reflected
           // in information queried from REST API, therefore we poll for the list of
