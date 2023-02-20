@@ -68,7 +68,7 @@ jobs:
           const permission_level = response.data.permission;
           return (permission_level == 'admin') || (permission_level == 'write')
     - name: Exit if insufficient permissions
-      if: ${{ steps.has_permissions.outputs.result == 'false' }}
+      if: steps.has_permissions.outputs.result == 'false'
       run: |
         exit 1
     - name: React to comment
@@ -104,7 +104,7 @@ jobs:
     - name: Run test command(s)
       run: ${{ inputs.commands }}
     - name: Get application token
-      if: ${{ secrets.application-id != '' }}
+      if: secrets.application-id != ''
       id: get_application_token
       uses: peter-murray/workflow-application-token-action@e8782d687a306fb13d733244d0f2a50e272d3752
       with:
