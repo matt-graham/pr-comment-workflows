@@ -25,10 +25,24 @@ on:
         required: false
         type: number
         default: 360
+      use-application-token:
+        description: |
+          Whether to use a GitHub App to generate an authentication token rather for
+          GitHub REST API queries after the commands have completed rather than the
+          GITHUB_TOKEN authentication token generated when the workflow is started. As
+          the access associated with GITHUB_TOKEN expires after 24 hours this is
+          necessary when test commands may take longer than this to complete. If set to
+          true the application-id and application-private-key secrets should be
+          specified, and optionally the application-organization input if using an
+          organization level GitHub App.
+        required: false
+        type: boolean
+        default: false
       application-organization:
         description: |
-          Organization GitHub App to use to issue API token used to create comment with
-          with results of test is installed on if relevant.
+          Organization in which GitHub App, used to issue API token used to create 
+          comment with results of test, is installed on if relevant. Only required if 
+          use-application-token is set to true.
         required: false
         type: string
       artifact-path:
@@ -54,13 +68,14 @@ on:
         description: |
           Application ID for GitHub App to use to issue API token used to create comment
           with results of test. App needs to have Actions (read) and Pull Requests
-          (read and write) permissions at the repository level.
+          (read and write) permissions at the repository level. Only required if 
+          use-application-token is set to true.
         required: true
       application-private-key:
         description: |
           Private key for GitHub App to use to issue API token used to create comment
-          with results of test. App needs to have Actions (read) and Pull Requests
-          (read and write) permissions at the repository level.
+          with results of test if relevant. Only required if use-application-token is
+          set to true.
         required: true
 jobs:
   run_test_on_keyword_and_reply_with_result:
@@ -127,7 +142,7 @@ jobs:
       run: ${{ inputs.commands }}
 
     - name: Get comment-bot token
-      if: always() && steps.has_permissions.outputs.result == 'true'
+      if: always() && inputs.use-application-token && steps.has_permissions.outputs.result == 'true'
       id: get_comment_bot_token
       uses: peter-murray/workflow-application-token-action@e8782d687a306fb13d733244d0f2a50e272d3752
       with:
@@ -139,7 +154,13 @@ jobs:
       if: always() && steps.has_permissions.outputs.result == 'true'
       uses: actions/github-script@v6
       with:
-        github-token: ${{ steps.get_comment_bot_token.outputs.token }}
+        # If no application-id input set use automatic GITHUB_TOKEN authentication
+        github-token: |
+          ${{
+            !inputs.use-application-token
+            && secrets.GITHUB_TOKEN
+            || steps.get_comment_bot_token.outputs.token
+          }}
         script: |
           // There can be a delay between steps completing and this being reflected
           // in information queried from REST API, therefore we poll for the list of
