@@ -118,9 +118,9 @@ jobs:
       with:
         result-encoding: string
         script: |
-          # Use REST API to try to get pull request data - if succesful return head
-          # commit SHA of pull request, otherwise return SHA of context (default branch
-          # head for issue comments)
+          // Use REST API to try to get pull request data - if succesful return head
+          // commit SHA of pull request, otherwise return SHA of context (default branch
+          // head for issue comments)
           const { data: pr } = await github.rest.pulls.get({
             owner: context.issue.owner,
             repo: context.issue.repo,
