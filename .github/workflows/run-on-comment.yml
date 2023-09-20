@@ -103,15 +103,19 @@ jobs:
       with:
         result-encoding: string
         script: |
-          if (!context.payload.pull_request) {
-            return context.sha;
-          };
+          # Use REST API to try to get pull request data - if succesful return head
+          # commit SHA of pull request, otherwise return SHA of context (default branch
+          # head for issue comments)
           const { data: pr } = await github.rest.pulls.get({
             owner: context.issue.owner,
             repo: context.issue.repo,
             pull_number: context.issue.number,
           });
-          return pr.head.sha;
+          if (pr) {
+            return pr.head.sha;
+          } else {
+            return context.sha;
+          }
 
     - name: Checkout SHA
       uses: actions/checkout@v3
