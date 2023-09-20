@@ -25,40 +25,43 @@ on:
         required: false
         type: number
         default: 360
-      use-application-token:
-        description: |
-          Whether to use a GitHub App to generate an authentication token rather for
-          GitHub REST API queries after the commands have completed rather than the
-          GITHUB_TOKEN authentication token generated when the workflow is started. As
-          the access associated with GITHUB_TOKEN expires after 24 hours this is
-          necessary when test commands may take longer than this to complete. If set to
-          true the application-id and application-private-key secrets should be
-          specified, and optionally the application-organization input if using an
-          organization level GitHub App.
-        required: false
-        type: boolean
-        default: false
       application-organization:
         description: |
-          Organization in which GitHub App, used to issue API token used to create 
-          comment with results of test, is installed on if relevant. Only required if 
-          use-application-token is set to true.
+          Organization GitHub App to use to issue API token used to create comment with
+          with results of test is installed on if relevant.
         required: false
         type: string
+      artifact-path:
+        description: |
+          Path to upload as a workflow artifact if the workflow is successful. 
+          No artifact will be produced if this value is left unpopulated.
+        required: false
+        type: string
+      artifact-name:
+        description: |
+          The name to assign to any artifacts that are to uploaded.
+        required: false
+        type: string
+        default: comment-triggered-workflow-artifact
+      artifact-retention-days:
+        description: |
+          Number of days to retain the artifact, if it is produced.
+        required: false
+        type: number
+        default: 1
     secrets:
       application-id:
         description: |
           Application ID for GitHub App to use to issue API token used to create comment
           with results of test. App needs to have Actions (read) and Pull Requests
-          (read and write) permissions at the repository level. Only required if 
-          use-application-token is set to true.
-        required: false
+          (read and write) permissions at the repository level.
+        required: true
       application-private-key:
         description: |
           Private key for GitHub App to use to issue API token used to create comment
-          with results of test if relevant. Only required if use-application-token is
-          set to true.
-        required: false
+          with results of test. App needs to have Actions (read) and Pull Requests
+          (read and write) permissions at the repository level.
+        required: true
 jobs:
   run_test_on_keyword_and_reply_with_result:
     runs-on: ${{ inputs.runs-on }}
@@ -77,10 +80,12 @@ jobs:
           });
           const permission_level = response.data.permission;
           return (permission_level == 'admin') || (permission_level == 'write')
+  
     - name: Exit if insufficient permissions
-      if: steps.has_permissions.outputs.result == 'false'
+      if: ${{ steps.has_permissions.outputs.result == 'false' }}
       run: |
         exit 1
+
     - name: React to comment
       uses: actions/github-script@v6
       with:
@@ -91,6 +96,7 @@ jobs:
             comment_id: context.payload.comment.id,
             content: "rocket",
           });
+
     - name: Get SHA of last commit on default branch if issue or pull-request branch
       id: sha
       uses: actions/github-script@v6
@@ -106,32 +112,30 @@ jobs:
             pull_number: context.issue.number,
           });
           return pr.head.sha;
+
     - name: Checkout SHA
       uses: actions/checkout@v3
       with:
         lfs: true
         ref: ${{ steps.sha.outputs.result }}
+
     - name: Run test command(s)
       run: ${{ inputs.commands }}
-    - name: Get application token
-      if: inputs.use-application-token
-      id: get_application_token
-      uses: peter-murray/workflow-application-token-action@8e1ba3bf1619726336414f1014e37f17fbadf1db
+
+    - name: Get comment-bot token
+      if: always() && steps.has_permissions.outputs.result == 'true'
+      id: get_comment_bot_token
+      uses: peter-murray/workflow-application-token-action@e8782d687a306fb13d733244d0f2a50e272d3752
       with:
         application_id: ${{ secrets.application-id }}
         application_private_key: ${{ secrets.application-private-key }}
         organization: ${{ inputs.application-organization }}
+
     - name: Create comment with test result and link to workflow run information
       if: always() && steps.has_permissions.outputs.result == 'true'
       uses: actions/github-script@v6
       with:
-        # If no application-id input set use automatic GITHUB_TOKEN authentication
-        github-token: |
-          ${{
-            !inputs.use-application-token
-            && secrets.GITHUB_TOKEN
-            || steps.get_application_token.outputs.token
-          }}
+        github-token: ${{ steps.get_comment_bot_token.outputs.token }}
         script: |
           // There can be a delay between steps completing and this being reflected
           // in information queried from REST API, therefore we poll for the list of
@@ -186,3 +190,11 @@ jobs:
             repo: context.repo.repo,  
             body: `## ${{inputs.description }} ${result}\n${details}`,
           });
+
+    - name: Upload artifact if requested
+      if: "${{ inputs.artifact-path != '' }}"
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ inputs.artifact-path }}
+        retention-days: ${{ inputs.artifact-retention-days }}
