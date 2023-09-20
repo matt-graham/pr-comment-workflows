@@ -70,13 +70,13 @@ on:
           with results of test. App needs to have Actions (read) and Pull Requests
           (read and write) permissions at the repository level. Only required if 
           use-application-token is set to true.
-        required: true
+        required: false
       application-private-key:
         description: |
           Private key for GitHub App to use to issue API token used to create comment
           with results of test if relevant. Only required if use-application-token is
           set to true.
-        required: true
+        required: false
 jobs:
   run_test_on_keyword_and_reply_with_result:
     runs-on: ${{ inputs.runs-on }}
