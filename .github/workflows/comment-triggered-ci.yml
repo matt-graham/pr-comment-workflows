@@ -62,3 +62,19 @@ jobs:
       application-id: ${{ secrets.COMMENT_BOT_APP_ID }}
       application-private-key: ${{ secrets.COMMENT_BOT_APP_PRIVATE_KEY }}
 
+  array_runs_on:
+    uses: ./.github/workflows/run-on-comment.yml
+    with:
+      runs-on: '["ubuntu-latest", "ubuntu-22.04"]'
+      keyword: array-runs-on
+      commands: |
+        set -x
+        python --version
+        uname -a
+        lsb_release -a
+        python -m cProfile src/scripts/run_sim.py
+      description: Running with array runs-on input
+      use-application-token: true
+    secrets:
+      application-id: ${{ secrets.COMMENT_BOT_APP_ID }}
+      application-private-key: ${{ secrets.COMMENT_BOT_APP_PRIVATE_KEY }}
