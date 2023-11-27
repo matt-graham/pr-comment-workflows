@@ -65,7 +65,7 @@ jobs:
   array_runs_on:
     uses: ./.github/workflows/run-on-comment.yml
     with:
-      runs-on: '["ubuntu-latest", "ubuntu-22.04"]'
+      runs-on: '["ubuntu-latest"]'
       keyword: array-runs-on
       commands: |
         set -x
