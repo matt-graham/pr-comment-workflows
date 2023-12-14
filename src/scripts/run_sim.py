@@ -1,7 +1,7 @@
 import time
 
 def print_percentage_complete(iteration, total_iterations):
-    print(f"{100 * iteration / total_iterations:.0f}%")
+    print(f"Completed {100 * iteration / total_iterations:.0f}%")
 
 if __name__ == "__main__":
     total_iterations = 10
